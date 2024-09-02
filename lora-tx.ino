@@ -50,9 +50,6 @@ void setup() {
     LoRa.setFrequency(FREQ);
     LoRa.setSpreadingFactor(8);
     LoRa.setSignalBandwidth(125000);
-#ifndef RX
-    LoRa.setTxPower(10);
-#endif
 
     display.init();
     display.setFont(Open_Sans_Light_10);
@@ -91,10 +88,13 @@ void loop() {
 unsigned int counter = 0;
 void loop() {
     char buffer[4];
+    // Set a variable TX power from 0 to 15 from the second hex digit
+    int level = (counter >> 4) & 0xF;
+    LoRa.setTxPower(level);
+    delay(1000);
     Serial.print(F("Sending packet "));
     snprintf(buffer, sizeof(buffer), "%03x", counter);
     Serial.println(buffer);
-    //Send LoRa packet to receiver
     LoRa.beginPacket();
     LoRa.print(F("AK6DS "));
     LoRa.print(buffer);
@@ -105,6 +105,5 @@ void loop() {
     drawBasicInfo();
     display.drawString(5, 40, "Sent packet " + String(buffer));
     display.display();
-    delay(2000);
 }
 #endif
