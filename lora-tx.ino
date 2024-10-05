@@ -7,6 +7,8 @@
 #include "opensans.h"
 
 
+#define LED 25
+
 #define SCK 5
 #define MISO 19
 #define MOSI 27
@@ -16,8 +18,8 @@
 
 #define BAND 433E6
 #define FREQ 438.525E6
-//#define RX
-#undef RX
+#define RX
+//#undef RX
 
 #define Display SSD1306Wire
 #define DISPLAY_ADDRESS 0x3C
@@ -33,6 +35,8 @@ void drawBasicInfo() {
 
 void setup() {
     Serial.begin(9600);
+    pinMode(LED, OUTPUT);
+    digitalWrite(LED, LOW);
 
 #ifdef RX
     Serial.println(F("LoRa Receiver"));
@@ -66,6 +70,7 @@ void loop() {
     if (packetSize) {
         int rssi, snr;
         char buffer[256], *bp = buffer;
+        digitalWrite(LED, HIGH);
         Serial.print(F("Received \""));
         while (LoRa.available())
             Serial.print((*bp++ = (char) LoRa.read()));
@@ -82,6 +87,7 @@ void loop() {
         display.drawString(5, 40, String(snr) + "dBSNR @ " + String(rssi) + "dBm");
         display.drawString(5, 50, buffer);
         display.display();
+        digitalWrite(LED, LOW);
     }
 }
 #else
@@ -92,6 +98,7 @@ void loop() {
     int level = (counter >> 4) & 0xF;
     LoRa.setTxPower(level);
     delay(1000);
+    digitalWrite(LED, HIGH);
     Serial.print(F("Sending packet "));
     snprintf(buffer, sizeof(buffer), "%03x", counter);
     Serial.println(buffer);
@@ -99,6 +106,7 @@ void loop() {
     LoRa.print(F("AK6DS "));
     LoRa.print(buffer);
     LoRa.endPacket();
+    digitalWrite(LED, LOW);
     ++counter;
     counter &= 0xFFF;
     display.clear();
